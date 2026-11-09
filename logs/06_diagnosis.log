@@ -1,0 +1,51 @@
+$ kubectl get deploy -A | grep -E "^NAMESPACE|web-consumer|auth-db"
+NAMESPACE              NAME                                   READY   UP-TO-DATE   AVAILABLE   AGE
+data                   auth-db                                1/1     1            1           24s
+web                    web-consumer                           2/2     2            2           24s
+
+$ kubectl get svc -A | grep -E "^NAMESPACE|auth-db"
+NAMESPACE              NAME                                   TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                  AGE
+data                   auth-db                                ClusterIP   10.152.183.98    <none>        80/TCP                   24s
+
+$ kubectl exec -n web deploy/web-consumer -- cat /etc/resolv.conf
+search web.svc.cluster.local svc.cluster.local cluster.local
+nameserver 10.152.183.10
+options ndots:5
+
+$ kubectl exec -n web deploy/web-consumer -- curl -sS -o /dev/null -w "HTTP %{http_code}\n" -m 5 http://auth-db
+curl: (6) Could not resolve host: auth-db
+HTTP 000
+command terminated with exit code 6
+
+$ kubectl exec -n web deploy/web-consumer -- curl -sS -o /dev/null -w "HTTP %{http_code}\n" -m 5 http://auth-db.data
+HTTP 200
+
+$ kubectl exec -n web deploy/web-consumer -- curl -sS -o /dev/null -w "HTTP %{http_code}\n" -m 5 http://auth-db.data.svc.cluster.local
+HTTP 200
+
+$ IP=$(kubectl get svc auth-db -n data -o jsonpath={.spec.clusterIP}); kubectl exec -n web deploy/web-consumer -- curl -sS -o /dev/null -w "HTTP %{http_code}\n" -m 5 http://$IP
+HTTP 200
+
+$ kubectl exec -n web deploy/web-consumer -- nslookup auth-db.data.svc.cluster.local
+Server:		10.152.183.10
+Address:	10.152.183.10:53
+
+
+Name:	auth-db.data.svc.cluster.local
+Address: 10.152.183.98
+
+
+$ kubectl get svc,endpointslice -n data
+NAME              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+service/auth-db   ClusterIP   10.152.183.98   <none>        80/TCP    63s
+
+NAME                                           ADDRESSTYPE   PORTS   ENDPOINTS     AGE
+endpointslice.discovery.k8s.io/auth-db-vdh9v   IPv4          80      10.1.144.66   63s
+
+$ kubectl get pods -n kube-system -l k8s-app=kube-dns
+NAME                       READY   STATUS    RESTARTS   AGE
+coredns-78894c95f4-bzf2q   1/1     Running   12         10d
+
+$ kubectl get networkpolicy -A
+No resources found
+

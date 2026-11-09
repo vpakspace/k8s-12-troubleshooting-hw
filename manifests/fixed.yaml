@@ -1,0 +1,79 @@
+# Исправленный вариант manifests/task.yaml (исходный файл не менялся).
+# Применять на чистом кластере: kubectl apply -f manifests/fixed.yaml
+# Изменения помечены комментариями «# FIX N».
+---
+# FIX 1. В исходном task.yaml нет Namespace'ов, а объекты в них лежат —
+# kubectl apply падал с «namespaces "web" not found» / «namespaces "data" not found».
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: web
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: data
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-consumer
+  namespace: web
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-consumer
+  template:
+    metadata:
+      labels:
+        app: web-consumer
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        # FIX 3 (главное). Было: curl auth-db
+        # Короткое имя «auth-db» DNS дополняет доменом СВОЕГО namespace (web.svc.cluster.local),
+        # а Service лежит в namespace data. Поэтому — полное имя <service>.<namespace>.svc.cluster.local.
+        - while true; do curl auth-db.data.svc.cluster.local; sleep 5; done
+        # FIX 2 (стенд). Было: radial/busyboxplus:curl — образ в формате Docker manifest schema 1,
+        # containerd v2.1.6 на этой VM такой образ не принимает («schema 1 image manifests are no longer
+        # supported»). curlimages/curl — тот же curl в современном формате; команда выше переопределяет ENTRYPOINT.
+        image: curlimages/curl:8.11.1
+        name: busybox
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-db
+  namespace: data
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: auth-db
+  template:
+    metadata:
+      labels:
+        app: auth-db
+    spec:
+      containers:
+      - image: nginx:1.19.1
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-db
+  namespace: data
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: auth-db

@@ -1,0 +1,22 @@
+$ kubectl get pods -n web
+NAME                            READY   STATUS         RESTARTS   AGE
+web-consumer-6c5f7cc594-8vg58   0/1     ErrImagePull   0          3s
+web-consumer-6c5f7cc594-h5k26   0/1     ErrImagePull   0          3s
+
+$ kubectl get pods -n data
+NAME                       READY   STATUS    RESTARTS   AGE
+auth-db-7bdf574b5f-cz7fp   1/1     Running   0          3s
+
+$ kubectl get events -n web --field-selector reason=Failed -o custom-columns=REASON:.reason,MESSAGE:.message | grep 'schema 1' | head -1
+Failed   Failed to pull image "radial/busyboxplus:curl": rpc error: code = InvalidArgument desc = failed to pull and unpack image "docker.io/radial/busyboxplus:curl": schema 1 image manifests are no longer supported: invalid argument
+
+$ scripts/image-manifest.sh radial/busyboxplus curl
+radial/busyboxplus:curl
+  Content-Type:  application/vnd.docker.distribution.manifest.v1+prettyjws
+  schemaVersion: 1
+
+$ scripts/image-manifest.sh curlimages/curl 8.11.1
+curlimages/curl:8.11.1
+  Content-Type:  application/vnd.docker.distribution.manifest.list.v2+json
+  schemaVersion: 2
+

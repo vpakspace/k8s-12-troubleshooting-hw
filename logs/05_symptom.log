@@ -1,0 +1,7 @@
+$ kubectl logs -n web deploy/web-consumer --tail=4
+Found 2 pods, using pod/web-consumer-d7c75d5b-cl2tg
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (6) Could not resolve host: auth-db
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (6) Could not resolve host: auth-db
+

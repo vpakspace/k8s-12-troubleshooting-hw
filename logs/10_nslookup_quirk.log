@@ -1,0 +1,22 @@
+$ kubectl exec -n web deploy/web-consumer -- nslookup auth-db.data
+Server:		10.152.183.10
+Address:	10.152.183.10:53
+
+** server can't find auth-db.data: NXDOMAIN
+
+** server can't find auth-db.data: NXDOMAIN
+
+command terminated with exit code 1
+
+$ kubectl exec -n web deploy/web-consumer -- curl -sS -o /dev/null -w "HTTP %{http_code}\n" -m 5 http://auth-db.data
+HTTP 200
+
+$ kubectl exec -n web deploy/web-consumer -- nslookup auth-db.data.svc.cluster.local
+Server:		10.152.183.10
+Address:	10.152.183.10:53
+
+
+Name:	auth-db.data.svc.cluster.local
+Address: 10.152.183.98
+
+

@@ -1,0 +1,11 @@
+# Альтернативное решение проблемы 3 — без правки приложения.
+# В namespace web создаётся Service `auth-db`, который является DNS-алиасом (CNAME) на настоящий Service из data.
+# Тогда исходная команда `curl auth-db` снова находит имя в «своём» namespace.
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-db
+  namespace: web
+spec:
+  type: ExternalName
+  externalName: auth-db.data.svc.cluster.local

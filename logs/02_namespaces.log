@@ -1,0 +1,9 @@
+$ kubectl apply -f manifests/00-namespaces.yaml
+namespace/web created
+namespace/data created
+
+$ kubectl apply -f https://raw.githubusercontent.com/netology-code/kuber-homeworks/main/3.5/files/task.yaml
+deployment.apps/web-consumer created
+deployment.apps/auth-db created
+service/auth-db created
+

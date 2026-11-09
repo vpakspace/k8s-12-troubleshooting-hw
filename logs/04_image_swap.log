@@ -1,0 +1,11 @@
+$ kubectl set image deployment/web-consumer -n web busybox=curlimages/curl:8.11.1
+deployment.apps/web-consumer image updated
+
+$ kubectl rollout status deployment/web-consumer -n web --timeout=120s | tail -1
+deployment "web-consumer" successfully rolled out
+
+$ kubectl get pods -n web
+NAME                          READY   STATUS    RESTARTS   AGE
+web-consumer-d7c75d5b-cl2tg   1/1     Running   0          6s
+web-consumer-d7c75d5b-h7ghx   1/1     Running   0          4s
+

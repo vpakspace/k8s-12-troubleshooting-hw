@@ -1,0 +1,11 @@
+$ microk8s kubectl version | grep -i server
+Server Version: v1.35.6
+
+$ microk8s ctr version | grep -m1 -A1 Server
+Server:
+  Version:  v2.1.6
+
+$ kubectl get nodes -o wide
+NAME                   STATUS   ROLES    AGE   VERSION   INTERNAL-IP   EXTERNAL-IP   OS-IMAGE             KERNEL-VERSION     CONTAINER-RUNTIME
+vladspace-virtualbox   Ready    <none>   24d   v1.35.6   10.0.2.15     <none>        Ubuntu 24.04.5 LTS   7.0.0-42-generic   containerd://2.1.6
+

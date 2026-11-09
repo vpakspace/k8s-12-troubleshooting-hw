@@ -1,0 +1,45 @@
+$ kubectl get deploy web-consumer -n web -o jsonpath="{.spec.template.spec.containers[0].command[2]}{\"\n\"}"
+while true; do curl auth-db.data.svc.cluster.local; sleep 5; done
+
+$ kubectl get pods -n web -o wide
+NAME                            READY   STATUS    RESTARTS   AGE   IP             NODE                   NOMINATED NODE   READINESS GATES
+web-consumer-6fb45d9775-75r6j   1/1     Running   0          54s   10.1.144.112   vladspace-virtualbox   <none>           <none>
+web-consumer-6fb45d9775-q5rlc   1/1     Running   0          43s   10.1.144.116   vladspace-virtualbox   <none>           <none>
+
+$ kubectl logs -n web deploy/web-consumer --tail=30
+Found 2 pods, using pod/web-consumer-6fb45d9775-75r6j
+</html>
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   612  100   612    0     0   173k      0 --:--:-- --:--:-- --:--:--  199k
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100   612  100   612    0     0   204k      0 --:--:-- --:--:-- --:--:--  298k
+
+$ for p in $(kubectl get pods -n web -o name); do echo "$p: ответов nginx = $(kubectl logs -n web $p | grep -c "<title>Welcome to nginx!</title>"), ошибок резолва = $(kubectl logs -n web $p | grep -c "Could not resolve")"; done
+pod/web-consumer-6fb45d9775-75r6j: ответов nginx = 9, ошибок резолва = 0
+pod/web-consumer-6fb45d9775-q5rlc: ответов nginx = 9, ошибок резолва = 0
+
